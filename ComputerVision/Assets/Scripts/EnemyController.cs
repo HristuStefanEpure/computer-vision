@@ -46,22 +46,7 @@ public class EnemyController : MonoBehaviour
 
                 Vector3 enemyPosition = transform.position;
 
-                float x_dif = enemyPosition.x - playerPosition.x;
-                float y_dif = enemyPosition.y - playerPosition.y;
-
-                if (y_dif <= -0.5)
-                    move = 1;
-                else if (y_dif <= 0.5)
-                {
-                    if (x_dif <= -0.5)
-                        move = 4;
-                    else if (x_dif <= 0.5)
-                        move = 0;
-                    else
-                        move = 3;
-                }
-                else
-                    move = 2;
+                move = DecisionTree(playerPosition, enemyPosition);
 
                 switch (move)
                 {
@@ -99,5 +84,29 @@ public class EnemyController : MonoBehaviour
                 //contor++;
             }
         }
+    }
+
+    int DecisionTree(Vector3 playerPosition, Vector3 enemyPosition)
+    {
+        int move = -1;
+
+        float x_dif = enemyPosition.x - playerPosition.x;
+        float y_dif = enemyPosition.y - playerPosition.y;
+
+        if (y_dif <= -0.5)
+            move = 1;
+        else if (y_dif <= 0.5)
+        {
+            if (x_dif <= -0.5)
+                move = 4;
+            else if (x_dif <= 0.5)
+                move = 0;
+            else
+                move = 3;
+        }
+        else
+            move = 2;
+
+        return move;
     }
 }
