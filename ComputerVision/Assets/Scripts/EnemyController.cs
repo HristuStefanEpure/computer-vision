@@ -43,6 +43,7 @@ public class EnemyController : MonoBehaviour
 
                 GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
                 Vector3 playerPosition = playerObject.transform.position;
+
                 Vector3 enemyPosition = transform.position;
 
                 float x_dif = enemyPosition.x - playerPosition.x;
