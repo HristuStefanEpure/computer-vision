@@ -1,13 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class PlayerController : MonoBehaviour
 {
     public float moveSpeed = 5f;
     public Transform movePoint;
 
+    public Tilemap coins;
+
     public LayerMask whatStopsMovement;
+
+    private int score = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -22,6 +27,14 @@ public class PlayerController : MonoBehaviour
 
         if(Vector3.Distance(transform.position, movePoint.position) <= .05f)
         {
+            if (coins.HasTile(coins.WorldToCell(transform.position)))
+            {
+                score++;
+                Debug.Log(score);
+            }
+
+            coins.SetTile(coins.WorldToCell(transform.position), null);
+
             if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) == 1f)
             {
                 if (!Physics2D.OverlapCircle(movePoint.position + new Vector3(Input.GetAxisRaw("Horizontal"), 0f, 0f), .2f, whatStopsMovement))
