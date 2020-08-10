@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -11,6 +12,8 @@ public class PlayerController : MonoBehaviour
     public Tilemap coins;
 
     public LayerMask whatStopsMovement;
+
+    public Text text;
 
     private int score = 0;
 
@@ -27,10 +30,13 @@ public class PlayerController : MonoBehaviour
 
         if(Vector3.Distance(transform.position, movePoint.position) <= .05f)
         {
+
+            //Contorizare scor
             if (coins.HasTile(coins.WorldToCell(transform.position)))
             {
                 score++;
-                Debug.Log(score);
+                //Debug.Log(score);
+                text.text = "SCOR: " + score.ToString();
             }
 
             coins.SetTile(coins.WorldToCell(transform.position), null);

@@ -27,6 +27,13 @@ public class EnemyController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //GAME OVER
+        if (Vector3.Distance(transform.position, player.transform.position) <= .05)
+        {
+            player.SetActive(false);
+            Time.timeScale = 0f;
+        }
+
         transform.position = Vector3.MoveTowards(transform.position, movePoint.position, moveSpeed * Time.deltaTime);
 
         if (Vector3.Distance(transform.position, movePoint.position) <= .05f)
