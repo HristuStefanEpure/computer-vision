@@ -16,6 +16,7 @@ public class EnemyController : MonoBehaviour
 
     public Vector3 enemyPosition;
     public Vector3 enemyMovePointPosition;
+    public Color spriteRendererColor;
 
     private SpriteRenderer spriteRenderer;
     public Sprite face;
@@ -41,6 +42,7 @@ public class EnemyController : MonoBehaviour
         spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
         enemyPosition = transform.position;
         enemyMovePointPosition = movePoint.position;
+        spriteRendererColor = spriteRenderer.color;
     }
 
     // Update is called once per frame
@@ -51,6 +53,11 @@ public class EnemyController : MonoBehaviour
         if (timer > 0)
         {
             timer -= Time.deltaTime;
+            spriteRenderer.color = Color.red;
+        }
+        else
+        {
+            spriteRenderer.color = spriteRendererColor;
         }
 
         //GAME OVER
