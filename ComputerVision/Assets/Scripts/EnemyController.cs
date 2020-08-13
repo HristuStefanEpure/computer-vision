@@ -14,6 +14,8 @@ public class EnemyController : MonoBehaviour
     public GameObject player;
     // public Transform playerMovePoint;
 
+    public Vector3 enemyPosition;
+    public Vector3 enemyMovePointPosition;
 
     private SpriteRenderer spriteRenderer;
     public Sprite face;
@@ -37,6 +39,8 @@ public class EnemyController : MonoBehaviour
     {
         movePoint.parent = null;
         spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        enemyPosition = transform.position;
+        enemyMovePointPosition = movePoint.position;
     }
 
     // Update is called once per frame
@@ -60,7 +64,9 @@ public class EnemyController : MonoBehaviour
             else //daca e modul putere
             {
                 player.GetComponent<PlayerController>().score += 100;
-                gameObject.SetActive(false);
+                //gameObject.SetActive(false);
+                transform.position = enemyPosition;
+                movePoint.position = enemyMovePointPosition;
             }
         }
 

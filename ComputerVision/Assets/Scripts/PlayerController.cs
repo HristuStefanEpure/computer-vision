@@ -53,6 +53,7 @@ public class PlayerController : MonoBehaviour
             if (powers.HasTile(powers.WorldToCell(transform.position)))
             {
                 EnemyController.ModeChange();
+                EnemyController2.ModeChange();
             }
 
             powers.SetTile(powers.WorldToCell(transform.position), null);
