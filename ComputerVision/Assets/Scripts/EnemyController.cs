@@ -14,6 +14,16 @@ public class EnemyController : MonoBehaviour
     public GameObject player;
     // public Transform playerMovePoint;
 
+
+    private SpriteRenderer spriteRenderer;
+    public Sprite face;
+    public Sprite back;
+    public Sprite side;
+
+
+    // Acest timer determina modul de jos. > 0 - normal, <= 0 - power
+     private static float timer = 0;
+
     public int direction = -1;
 
     public const int HOLD = 0;
@@ -26,16 +36,32 @@ public class EnemyController : MonoBehaviour
     void Start()
     {
         movePoint.parent = null;
+        spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        //GAME OVER
-        if (Vector3.Distance(transform.position, player.transform.position) <= .05)
+        Vector3 scale = transform.localScale;
+
+        if (timer > 0)
         {
-            player.SetActive(false);
-            Time.timeScale = 0f;
+            timer -= Time.deltaTime;
+        }
+
+        //GAME OVER
+        if (Vector3.Distance(transform.position, player.transform.position) <= .5)
+        {
+            if (timer <= 0) //daca e modul normal
+            {
+                player.SetActive(false);
+                Time.timeScale = 0f;
+            }
+            else //daca e modul putere
+            {
+                player.GetComponent<PlayerController>().score += 100;
+                gameObject.SetActive(false);
+            }
         }
 
         transform.position = Vector3.MoveTowards(transform.position, movePoint.position, moveSpeed * Time.deltaTime);
@@ -68,6 +94,7 @@ public class EnemyController : MonoBehaviour
                                 movePoint.position += new Vector3(0f, 1f, 0f);
                                 direction = UP;
                                 moveDone = true;
+                                spriteRenderer.sprite = back;
                             }
                             break;
                         case DOWN: // down
@@ -76,6 +103,7 @@ public class EnemyController : MonoBehaviour
                                 movePoint.position += new Vector3(0f, -1f, 0f);
                                 direction = DOWN;
                                 moveDone = true;
+                                spriteRenderer.sprite = face;
                             }
                             break;
                         case LEFT: // left
@@ -84,6 +112,8 @@ public class EnemyController : MonoBehaviour
                                 movePoint.position += new Vector3(-1f, 0f, 0f);
                                 direction = LEFT;
                                 moveDone = true;
+                                scale.x = 4;
+                                spriteRenderer.sprite = side;
                             }
                             break;
                         case RIGHT: // right
@@ -92,6 +122,8 @@ public class EnemyController : MonoBehaviour
                                 movePoint.position += new Vector3(1f, 0f, 0f);
                                 direction = RIGHT;
                                 moveDone = true;
+                                scale.x = -4;
+                                spriteRenderer.sprite = side;
                             }
                             break;
                         default: // error
@@ -102,6 +134,14 @@ public class EnemyController : MonoBehaviour
                 }
             }
         }
+
+        transform.localScale = scale;
+    }
+
+    //functia care schimba modul de joc
+    public static void ModeChange()
+    {
+        timer = 4; // secunde modul power
     }
 
     /*int DecisionTree(Vector3 playerPosition, Vector3 enemyPosition)

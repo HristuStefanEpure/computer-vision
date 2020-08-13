@@ -10,12 +10,13 @@ public class PlayerController : MonoBehaviour
     public Transform movePoint;
 
     public Tilemap coins;
+    public Tilemap powers;
 
     public LayerMask whatStopsMovement;
 
     public Text text;
 
-    private int score = 0;
+    public int score = 0;
     private int last_move; //0-side, 1-up, 2-down
 
     // Start is called before the first frame update
@@ -28,6 +29,9 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //AFISARE SCOR
+        text.text = "SCOR: " + score.ToString();
+
 
         Vector3 scale = transform.localScale;
 
@@ -41,10 +45,17 @@ public class PlayerController : MonoBehaviour
             {
                 score++;
                 //Debug.Log(score);
-                text.text = "SCOR: " + score.ToString();
             }
 
             coins.SetTile(coins.WorldToCell(transform.position), null);
+
+            //Putere
+            if (powers.HasTile(powers.WorldToCell(transform.position)))
+            {
+                EnemyController.ModeChange();
+            }
+
+            powers.SetTile(powers.WorldToCell(transform.position), null);
 
             if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) == 1f)
             {
