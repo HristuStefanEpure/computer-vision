@@ -22,7 +22,7 @@ public class EnemyController : MonoBehaviour
 
 
     // Acest timer determina modul de jos. > 0 - normal, <= 0 - power
-     private static float timer = 0;
+    private static float timer = 0;
 
     public int direction = -1;
 
@@ -86,7 +86,7 @@ public class EnemyController : MonoBehaviour
                     switch (move)
                     {
                         case HOLD: // hold
-                                   // the player dies or the enemy dies
+                            // the player dies or the enemy dies
                             break;
                         case UP: // up
                             if (!Physics2D.OverlapCircle(movePoint.position + new Vector3(0f, 1f, 0f), .2f, whatStopsMovement))
@@ -172,8 +172,19 @@ public class EnemyController : MonoBehaviour
     {
         int move = -1;
 
-        float x_dif = enemyPosition.x - playerPosition.x;
-        float y_dif = enemyPosition.y - playerPosition.y;
+        float x_dif;
+        float y_dif;
+
+        if (timer <= 0)
+        {
+            x_dif = enemyPosition.x - playerPosition.x;
+            y_dif = enemyPosition.y - playerPosition.y;
+        }
+        else
+        {
+            x_dif = playerPosition.x - enemyPosition.x;
+            y_dif = playerPosition.y - enemyPosition.y;
+        }
 
         if (y_dif <= -0.5)
         {
