@@ -25,6 +25,7 @@ public class EnemyController2 : MonoBehaviour
 
     // Acest timer determina modul de jos. > 0 - normal, <= 0 - power
     private static float timer = 0;
+    private static bool timerBool = false;
 
     public int direction = -1;
 
@@ -56,15 +57,15 @@ public class EnemyController2 : MonoBehaviour
         {
             timer -= Time.deltaTime;
             spriteRenderer.color = Color.red;
-            moveSpeed = 3f;
+            moveSpeed = 3.5f;
         }
         else
         {
-           spriteRenderer.color = spriteRendererColor;
+            spriteRenderer.color = spriteRendererColor;
             moveSpeed = 4f;
         }
 
-        //GAME OVER
+        // GAME OVER
         if (Vector3.Distance(transform.position, player.transform.position) <= .5)
         {
             if (timer <= 0) //daca e modul normal
@@ -94,7 +95,7 @@ public class EnemyController2 : MonoBehaviour
                 bool moveDone = false;
                 int i = 0;
 
-                moveTree = DecisionTree(player.transform.position, transform.position);
+                moveTree = DecisionTreeBuild(player.transform.position, transform.position, timer);
                 moves = BuildMoves(moveTree);
 
                 while (!moveDone)
@@ -156,10 +157,11 @@ public class EnemyController2 : MonoBehaviour
         transform.localScale = scale;
     }
 
-    //functia care schimba modul de joc
+    // Functia care schimba modul de joc
     public static void ModeChange()
     {
         timer = 4; // secunde modul power
+        timerBool = true;
     }
 
     /*int DecisionTree(Vector3 playerPosition, Vector3 enemyPosition)
@@ -186,7 +188,7 @@ public class EnemyController2 : MonoBehaviour
         return move;
     }*/
 
-    int DecisionTree(Vector3 playerPosition, Vector3 enemyPosition)
+    /*int DecisionTree(Vector3 playerPosition, Vector3 enemyPosition)
     {
         int move = -1;
 
@@ -245,9 +247,89 @@ public class EnemyController2 : MonoBehaviour
         }
 
         return move;
+    }*/
+
+    int DecisionTreeBuild(Vector3 playerPosition, Vector3 enemyPosition, float game_mode)
+    {
+        int move = -1;
+
+        float x_dif = enemyPosition.x - playerPosition.x;
+        float y_dif = enemyPosition.y - playerPosition.y;
+
+        move = DecisionTree(x_dif, y_dif, game_mode);
+
+        return move;
     }
 
-    List<int> BuildMoves(int move)
+    int DecisionTree(float x_dif, float y_dif, float game_mode)
+    {
+        if (y_dif <= -0.5)
+        {
+            if (game_mode <= 0.0)
+            {
+                if (x_dif <= -0.5) return 41;
+                else if (x_dif > -0.5)
+                {
+                    if (x_dif <= 0.5) return 1;
+                    else if (x_dif > 0.5) return 31;
+                }
+            }
+            else if (game_mode > 0.0)
+            {
+                if (x_dif <= -0.5) return 32;
+                else if (x_dif > -0.5)
+                {
+                    if (x_dif <= 0.5) return 2;
+                    else if (x_dif > 0.5) return 42;
+                }
+            }
+        }
+        else if (y_dif > -0.5)
+        {
+            if (y_dif <= 0.5)
+            {
+                if (x_dif <= -0.5)
+                {
+                    if (game_mode <= 0.0) return 4;
+                    else if (game_mode > 0.0) return 3;
+                }
+                else if (x_dif > -0.5)
+                {
+                    if (x_dif <= 0.5) return 0;
+                    else if (x_dif > 0.5)
+                    {
+                        if (game_mode <= 0.0) return 3;
+                        else if (game_mode > 0.0) return 4;
+                    }
+                }
+            }
+            else if (y_dif > 0.5)
+            {
+                if (game_mode <= 0.0)
+                {
+                    if (x_dif <= -0.5) return 42;
+                    else if (x_dif > -0.5)
+                    {
+                        if (x_dif <= 0.5) return 2;
+                        else if (x_dif > 0.5) return 32;
+                    }
+                }
+                else if (game_mode > 0.0)
+                {
+                    if (x_dif <= -0.5) return 31;
+                    else if (x_dif > -0.5)
+                    {
+                        if (x_dif <= 0.5) return 1;
+                        else if (x_dif > 0.5) return 41;
+                    }
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    /*List<int> BuildMoves(int move)
     {
         List<int> moves = new List<int>();
         int antiDirection = -1;
@@ -269,6 +351,55 @@ public class EnemyController2 : MonoBehaviour
 
         antiDirection = AntiDirection(direction);
         moves.Remove(antiDirection);
+
+        return moves;
+    }*/
+
+    List<int> BuildMoves(int move)
+    {
+        List<int> moves = new List<int>();
+        int antiDirection = -1;
+        int i = 0;
+
+        int first = move / 10;
+        int second = move % 10;
+
+        if (first != 0)
+            moves.Add(first);
+
+        moves.Add(second);
+
+        /*for (i = UP; i <= RIGHT; i++)
+        {
+            if (!moves.Contains(i))
+                moves.Add(i);
+        }*/
+
+        if (first != 0)
+        {
+            moves.Add(AntiDirection(first));
+            moves.Add(AntiDirection(second));
+            moves.Remove(AntiDirection(direction));
+        }
+        else
+        {
+            for (i = RIGHT; i >= UP; i--)
+            {
+                if ((i != second) && (i != AntiDirection(second)))
+                    moves.Add(i);
+            }
+            moves.Add(AntiDirection(second));
+        }
+
+        if (timerBool == false)
+        {
+            antiDirection = AntiDirection(direction);
+            moves.Remove(antiDirection);
+        }
+        else
+        {
+            timerBool = false;
+        }
 
         return moves;
     }

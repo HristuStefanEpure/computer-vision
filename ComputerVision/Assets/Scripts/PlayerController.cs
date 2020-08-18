@@ -32,7 +32,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (scoreCoins == 246) // 246 - total number of coins
+        if (scoreCoins == 247) // 247 - total number of coins
         {
             gameState = 1;
         }
@@ -69,7 +69,7 @@ public class PlayerController : MonoBehaviour
 
             coins.SetTile(coins.WorldToCell(transform.position), null);
 
-            //Putere
+            // Putere
             if (powers.HasTile(powers.WorldToCell(transform.position)))
             {
                 EnemyController.ModeChange();
