@@ -47,6 +47,9 @@ public class EnemyController2 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (player.GetComponent<PlayerController>().gameState == 1)
+            return;
+
         Vector3 scale = transform.localScale;
 
         if (timer > 0)
@@ -64,8 +67,9 @@ public class EnemyController2 : MonoBehaviour
         {
             if (timer <= 0) //daca e modul normal
             {
-                player.SetActive(false);
+                //player.SetActive(false);
                 Time.timeScale = 0f;
+                player.GetComponent<PlayerController>().gameState = 2;
             }
             else //daca e modul putere
             {

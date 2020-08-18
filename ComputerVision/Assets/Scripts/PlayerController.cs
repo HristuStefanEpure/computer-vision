@@ -17,7 +17,10 @@ public class PlayerController : MonoBehaviour
     public Text text;
 
     public int score = 0;
-    private int last_move; //0-side, 1-up, 2-down
+    public int scoreCoins = 0;
+    private int last_move; // 0-side, 1-up, 2-down
+
+    public int gameState = 0; // 0 - in progress, 1 - won, 2 - lost
 
     // Start is called before the first frame update
     void Start()
@@ -29,9 +32,26 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //AFISARE SCOR
-        text.text = "SCOR: " + score.ToString();
+        if (scoreCoins == 246) // 246 - total number of coins
+        {
+            gameState = 1;
+        }
 
+        // AFISARE SCOR
+        if (gameState == 0)
+        {
+            text.text = "SCOR: " + score.ToString();
+        }
+        else if (gameState == 1)
+        {
+            text.text = "YOU WON";
+            gameObject.SetActive(false);
+        }
+        else if (gameState == 2)
+        {
+            text.text = "YOU LOST";
+            gameObject.SetActive(false);
+        }
 
         Vector3 scale = transform.localScale;
 
@@ -39,11 +59,11 @@ public class PlayerController : MonoBehaviour
 
         if (Vector3.Distance(transform.position, movePoint.position) <= .05f)
         {
-
-            //Contorizare scor
+            // Contorizare scor
             if (coins.HasTile(coins.WorldToCell(transform.position)))
             {
                 score++;
+                scoreCoins++;
                 //Debug.Log(score);
             }
 
