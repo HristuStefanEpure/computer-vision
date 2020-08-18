@@ -56,10 +56,12 @@ public class EnemyController : MonoBehaviour
         {
             timer -= Time.deltaTime;
             spriteRenderer.color = Color.red;
+            moveSpeed = 3f;
         }
         else
         {
             spriteRenderer.color = spriteRendererColor;
+            moveSpeed = 4f;
         }
 
         //GAME OVER
