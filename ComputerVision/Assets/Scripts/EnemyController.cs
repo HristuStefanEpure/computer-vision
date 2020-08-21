@@ -27,6 +27,7 @@ public class EnemyController : MonoBehaviour
 
     // Timer pentru proiectil
     private static float projectileTimer = 3f;
+    private bool deadOnce = false;
 
     // Acest timer determina modul de joc. > 0 - normal, <= 0 - power
     private static float timer = 0;
@@ -69,7 +70,10 @@ public class EnemyController : MonoBehaviour
         }
         else
         {
-            ShootProjectile(direction);
+            if (deadOnce && timer <= 0)
+            {
+                ShootProjectile(direction);
+            }
             projectileTimer = 3f;
         }
 
@@ -104,6 +108,7 @@ public class EnemyController : MonoBehaviour
             }
             else //daca e modul putere
             {
+                deadOnce = true;
                 player.GetComponent<PlayerController>().score += 100;
                 //gameObject.SetActive(false);
                 transform.position = enemyPosition;

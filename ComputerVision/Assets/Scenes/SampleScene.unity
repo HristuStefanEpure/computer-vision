@@ -9256,6 +9256,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fd1d5d9dabcd4643969f37a59908f42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  projectile: {fileID: 1245366436890167585, guid: 51fd366cba76e1b44bdd4875b44733df,
+    type: 3}
   moveSpeed: 4
   movePoint: {fileID: 1915084054}
   whatStopsMovement:
