@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class EnemyController : MonoBehaviour
 {
+    public Object projectile;
+
     public float moveSpeed = 5f;
     public Transform movePoint;
 
@@ -23,7 +25,10 @@ public class EnemyController : MonoBehaviour
     public Sprite back;
     public Sprite side;
 
-    // Acest timer determina modul de jos. > 0 - normal, <= 0 - power
+    // Timer pentru proiectil
+    private static float projectileTimer = 3f;
+
+    // Acest timer determina modul de joc. > 0 - normal, <= 0 - power
     private static float timer = 0;
     private static bool timerBool = false;
 
@@ -45,9 +50,32 @@ public class EnemyController : MonoBehaviour
         spriteRendererColor = spriteRenderer.color;
     }
 
+    // Functie pentru lansarea unui proiectil
+    void ShootProjectile(int direction)
+    {
+        GameObject newObject = Instantiate(projectile) as GameObject;
+        newObject.transform.position = transform.position;
+        newObject.GetComponent<Projectile>().direction = direction;
+    }
+
     // Update is called once per frame
     void Update()
     {
+        /////////////////////////////////////////////
+        //pentru proiectil:
+        if (projectileTimer > 0)
+        {
+            projectileTimer -= Time.deltaTime;
+        }
+        else
+        {
+            ShootProjectile(direction);
+            projectileTimer = 3f;
+        }
+
+
+
+        /////////////////////////////////////////////
         if (player.GetComponent<PlayerController>().gameState == 1)
             return;
 
