@@ -27,7 +27,7 @@ public class EnemyController2 : MonoBehaviour
 
     // Timer pentru proiectil
     private static float projectileTimer = 3f;
-    private bool deadOnce = false;
+    private int deadOnce = -1;
 
     // Acest timer determina modul de jos. > 0 - normal, <= 0 - power
     private static float timer = 0;
@@ -40,6 +40,7 @@ public class EnemyController2 : MonoBehaviour
     public const int DOWN = 2;
     public const int LEFT = 3;
     public const int RIGHT = 4;
+    public const int SHOOT = 5;
 
     // Start is called before the first frame update
     void Start()
@@ -62,29 +63,18 @@ public class EnemyController2 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        /////////////////////////////////////////////
-        //pentru proiectil:
-        if (projectileTimer > 0)
-        {
-            projectileTimer -= Time.deltaTime;
-        }
-        else
-        {
-            if (deadOnce && timer <= 0)
-            {
-                ShootProjectile(direction);
-            }
-            projectileTimer = 3f;
-        }
-
-
-
-        /////////////////////////////////////////////
         if (player.GetComponent<PlayerController>().gameState == 1)
             return;
 
         Vector3 scale = transform.localScale;
 
+        // Proiectil
+        if (projectileTimer > 0)
+            projectileTimer -= Time.deltaTime;
+        else
+            projectileTimer = 3f;
+
+        // Game mode
         if (timer > 0)
         {
             timer -= Time.deltaTime;
@@ -108,7 +98,7 @@ public class EnemyController2 : MonoBehaviour
             }
             else //daca e modul putere
             {
-                deadOnce = true;
+                deadOnce = 1;
                 player.GetComponent<PlayerController>().score += 100;
                 //gameObject.SetActive(false);
                 transform.position = enemyPosition;
@@ -118,17 +108,26 @@ public class EnemyController2 : MonoBehaviour
 
         transform.position = Vector3.MoveTowards(transform.position, movePoint.position, moveSpeed * Time.deltaTime);
 
+        // Decision Tree
+        int moveTree = -1;
+        List<int> moves = new List<int>();
+        int move = -1;
+        bool moveDone = false;
+        int i = 0;
+
+        moveTree = DecisionTreeBuild(player.transform.position, transform.position, timer, projectileTimer, deadOnce);
+
+        // Proiectil
+        if (moveTree == SHOOT)
+        {
+            ShootProjectile(direction);
+            moveDone = true;
+        }
+
         if (Vector3.Distance(transform.position, movePoint.position) <= .05f)
         {
             //if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) == 1f || Mathf.Abs(Input.GetAxisRaw("Vertical")) == 1f)
             {
-                int moveTree = -1;
-                List<int> moves = new List<int>();
-                int move = -1;
-                bool moveDone = false;
-                int i = 0;
-
-                moveTree = DecisionTreeBuild(player.transform.position, transform.position, timer);
                 moves = BuildMoves(moveTree);
 
                 while (!moveDone)
@@ -197,163 +196,175 @@ public class EnemyController2 : MonoBehaviour
         timerBool = true;
     }
 
-    /*int DecisionTree(Vector3 playerPosition, Vector3 enemyPosition)
+    int DecisionTreeBuild(Vector3 playerPosition, Vector3 enemyPosition, float game_mode, float fight_mode, int dead_once)
     {
         int move = -1;
 
         float x_dif = enemyPosition.x - playerPosition.x;
         float y_dif = enemyPosition.y - playerPosition.y;
 
-        if (y_dif <= -0.5)
-            move = UP;
-        else if (y_dif <= 0.5)
-        {
-            if (x_dif <= -0.5)
-                move = RIGHT;
-            else if (x_dif <= 0.5)
-                move = HOLD;
-            else
-                move = LEFT;
-        }
-        else
-            move = DOWN;
-
-        return move;
-    }*/
-
-    /*int DecisionTree(Vector3 playerPosition, Vector3 enemyPosition)
-    {
-        int move = -1;
-
-        float x_dif;
-        float y_dif;
-
-        if (timer <= 0)
-        {
-            x_dif = enemyPosition.x - playerPosition.x;
-            y_dif = enemyPosition.y - playerPosition.y;
-        }
-        else
-        {
-            x_dif = playerPosition.x - enemyPosition.x;
-            y_dif = playerPosition.y - enemyPosition.y;
-        }
-
-        if (y_dif <= -0.5)
-        {
-            if (x_dif <= -0.5)
-                move = 14;
-            else if (x_dif > -0.5)
-            {
-                if (x_dif <= 0.5)
-                    move = 1;
-                else if (x_dif > 0.5)
-                    move = 13;
-            }
-        }
-        else if (y_dif > -0.5)
-        {
-            if (y_dif <= 0.5)
-            {
-                if (x_dif <= -0.5)
-                    move = 4;
-                else if (x_dif > -0.5)
-                {
-                    if (x_dif <= 0.5)
-                        move = 0;
-                    else if (x_dif > 0.5)
-                        move = 3;
-                }
-            }
-            else if (y_dif > 0.5)
-            {
-                if (x_dif <= -0.5)
-                    move = 24;
-                else if (x_dif > -0.5)
-                {
-                    if (x_dif <= 0.5)
-                        move = 2;
-                    else if (x_dif > 0.5)
-                        move = 23;
-                }
-            }
-        }
-
-        return move;
-    }*/
-
-    int DecisionTreeBuild(Vector3 playerPosition, Vector3 enemyPosition, float game_mode)
-    {
-        int move = -1;
-
-        float x_dif = enemyPosition.x - playerPosition.x;
-        float y_dif = enemyPosition.y - playerPosition.y;
-
-        move = DecisionTree(x_dif, y_dif, game_mode);
+        move = DecisionTree(x_dif, y_dif, game_mode, fight_mode, dead_once);
 
         return move;
     }
 
-    int DecisionTree(float x_dif, float y_dif, float game_mode)
+    int DecisionTree(float x_dif, float y_dif, float game_mode, float fight_mode, int dead_once)
     {
-        if (y_dif <= -0.5)
+        if (x_dif <= -0.50)
         {
-            if (game_mode <= 0.0)
+            if (game_mode <= 0.00)
             {
-                if (x_dif <= -0.5) return 41;
-                else if (x_dif > -0.5)
+                if (y_dif <= -0.50)
                 {
-                    if (x_dif <= 0.5) return 1;
-                    else if (x_dif > 0.5) return 31;
+                    if (dead_once <= 0.00)
+                        return 41;
+                    if (dead_once > 0.00)
+                    {
+                        if (fight_mode <= 0.00)
+                            return 5;
+                        if (fight_mode > 0.00)
+                            return 41;
+                    }
+                }
+                if (y_dif > -0.50)
+                {
+                    if (y_dif <= 0.50)
+                    {
+                        if (fight_mode <= 0.00)
+                        {
+                            if (dead_once <= 0.00)
+                                return 4;
+                            if (dead_once > 0.00)
+                                return 5;
+                        }
+                        if (fight_mode > 0.00)
+                            return 4;
+                    }
+                    if (y_dif > 0.50)
+                    {
+                        if (fight_mode <= 0.00)
+                        {
+                            if (dead_once <= 0.00)
+                                return 42;
+                            if (dead_once > 0.00)
+                                return 5;
+                        }
+                        if (fight_mode > 0.00)
+                            return 42;
+                    }
                 }
             }
-            else if (game_mode > 0.0)
+            if (game_mode > 0.00)
             {
-                if (x_dif <= -0.5) return 32;
-                else if (x_dif > -0.5)
+                if (y_dif <= -0.50)
+                    return 32;
+                if (y_dif > -0.50)
                 {
-                    if (x_dif <= 0.5) return 2;
-                    else if (x_dif > 0.5) return 42;
+                    if (y_dif <= 0.50)
+                        return 3;
+                    if (y_dif > 0.50)
+                        return 31;
                 }
             }
         }
-        else if (y_dif > -0.5)
+        if (x_dif > -0.50)
         {
-            if (y_dif <= 0.5)
+            if (x_dif <= 0.50)
             {
-                if (x_dif <= -0.5)
+                if (y_dif <= -0.50)
                 {
-                    if (game_mode <= 0.0) return 4;
-                    else if (game_mode > 0.0) return 3;
-                }
-                else if (x_dif > -0.5)
-                {
-                    if (x_dif <= 0.5) return 0;
-                    else if (x_dif > 0.5)
+                    if (game_mode <= 0.00)
                     {
-                        if (game_mode <= 0.0) return 3;
-                        else if (game_mode > 0.0) return 4;
+                        if (fight_mode <= 0.00)
+                        {
+                            if (dead_once <= 0.00)
+                                return 1;
+                            if (dead_once > 0.00)
+                                return 5;
+                        }
+                        if (fight_mode > 0.00)
+                            return 1;
+                    }
+                    if (game_mode > 0.00)
+                        return 2;
+                }
+                if (y_dif > -0.50)
+                {
+                    if (y_dif <= 0.50)
+                        return 0;
+                    if (y_dif > 0.50)
+                    {
+                        if (game_mode <= 0.00)
+                        {
+                            if (dead_once <= 0.00)
+                                return 2;
+                            if (dead_once > 0.00)
+                            {
+                                if (fight_mode <= 0.00)
+                                    return 5;
+                                if (fight_mode > 0.00)
+                                    return 2;
+                            }
+                        }
+                        if (game_mode > 0.00)
+                            return 1;
                     }
                 }
             }
-            else if (y_dif > 0.5)
+            if (x_dif > 0.50)
             {
-                if (game_mode <= 0.0)
+                if (game_mode <= 0.00)
                 {
-                    if (x_dif <= -0.5) return 42;
-                    else if (x_dif > -0.5)
+                    if (y_dif <= -0.50)
                     {
-                        if (x_dif <= 0.5) return 2;
-                        else if (x_dif > 0.5) return 32;
+                        if (fight_mode <= 0.00)
+                        {
+                            if (dead_once <= 0.00)
+                                return 31;
+                            if (dead_once > 0.00)
+                                return 5;
+                        }
+                        if (fight_mode > 0.00)
+                            return 31;
+                    }
+                    if (y_dif > -0.50)
+                    {
+                        if (y_dif <= 0.50)
+                        {
+                            if (fight_mode <= 0.00)
+                            {
+                                if (dead_once <= 0.00)
+                                    return 3;
+                                if (dead_once > 0.00)
+                                    return 5;
+                            }
+                            if (fight_mode > 0.00)
+                                return 3;
+                        }
+                        if (y_dif > 0.50)
+                        {
+                            if (fight_mode <= 0.00)
+                            {
+                                if (dead_once <= 0.00)
+                                    return 32;
+                                if (dead_once > 0.00)
+                                    return 5;
+                            }
+                            if (fight_mode > 0.00)
+                                return 32;
+                        }
                     }
                 }
-                else if (game_mode > 0.0)
+                if (game_mode > 0.00)
                 {
-                    if (x_dif <= -0.5) return 31;
-                    else if (x_dif > -0.5)
+                    if (y_dif <= -0.50)
+                        return 42;
+                    if (y_dif > -0.50)
                     {
-                        if (x_dif <= 0.5) return 1;
-                        else if (x_dif > 0.5) return 41;
+                        if (y_dif <= 0.50)
+                            return 4;
+                        if (y_dif > 0.50)
+                            return 41;
                     }
                 }
             }
@@ -362,37 +373,14 @@ public class EnemyController2 : MonoBehaviour
         return -1;
     }
 
-    /*List<int> BuildMoves(int move)
-    {
-        List<int> moves = new List<int>();
-        int antiDirection = -1;
-        int i = 0;
-
-        int first = move / 10;
-        int second = move % 10;
-
-        moves.Add(second);
-
-        if (first != 0)
-            moves.Add(first);
-
-        for (i = RIGHT; i >= UP; i--)
-        {
-            if (!moves.Contains(i))
-                moves.Add(i);
-        }
-
-        antiDirection = AntiDirection(direction);
-        moves.Remove(antiDirection);
-
-        return moves;
-    }*/
-
     List<int> BuildMoves(int move)
     {
         List<int> moves = new List<int>();
         int antiDirection = -1;
         int i = 0;
+
+        if (move == SHOOT)
+            return null;
 
         int first = move / 10;
         int second = move % 10;
@@ -430,9 +418,7 @@ public class EnemyController2 : MonoBehaviour
             moves.Remove(antiDirection);
         }
         else
-        {
             timerBool = false;
-        }
 
         return moves;
     }
@@ -463,3 +449,182 @@ public class EnemyController2 : MonoBehaviour
         return antiDirection;
     }
 }
+
+/*int DecisionTree(Vector3 playerPosition, Vector3 enemyPosition)
+{
+    int move = -1;
+
+    float x_dif = enemyPosition.x - playerPosition.x;
+    float y_dif = enemyPosition.y - playerPosition.y;
+
+    if (y_dif <= -0.5)
+        move = UP;
+    else if (y_dif <= 0.5)
+    {
+        if (x_dif <= -0.5)
+            move = RIGHT;
+        else if (x_dif <= 0.5)
+            move = HOLD;
+        else
+            move = LEFT;
+    }
+    else
+        move = DOWN;
+
+    return move;
+}*/
+
+/*int DecisionTree(Vector3 playerPosition, Vector3 enemyPosition)
+{
+    int move = -1;
+
+    float x_dif;
+    float y_dif;
+
+    if (timer <= 0)
+    {
+        x_dif = enemyPosition.x - playerPosition.x;
+        y_dif = enemyPosition.y - playerPosition.y;
+    }
+    else
+    {
+        x_dif = playerPosition.x - enemyPosition.x;
+        y_dif = playerPosition.y - enemyPosition.y;
+    }
+
+    if (y_dif <= -0.5)
+    {
+        if (x_dif <= -0.5)
+            move = 14;
+        else if (x_dif > -0.5)
+        {
+            if (x_dif <= 0.5)
+                move = 1;
+            else if (x_dif > 0.5)
+                move = 13;
+        }
+    }
+    else if (y_dif > -0.5)
+    {
+        if (y_dif <= 0.5)
+        {
+            if (x_dif <= -0.5)
+                move = 4;
+            else if (x_dif > -0.5)
+            {
+                if (x_dif <= 0.5)
+                    move = 0;
+                else if (x_dif > 0.5)
+                    move = 3;
+            }
+        }
+        else if (y_dif > 0.5)
+        {
+            if (x_dif <= -0.5)
+                move = 24;
+            else if (x_dif > -0.5)
+            {
+                if (x_dif <= 0.5)
+                    move = 2;
+                else if (x_dif > 0.5)
+                    move = 23;
+            }
+        }
+    }
+
+    return move;
+}*/
+
+/*int DecisionTree(float x_dif, float y_dif, float game_mode)
+{
+    if (y_dif <= -0.5)
+    {
+        if (game_mode <= 0.0)
+        {
+            if (x_dif <= -0.5) return 41;
+            else if (x_dif > -0.5)
+            {
+                if (x_dif <= 0.5) return 1;
+                else if (x_dif > 0.5) return 31;
+            }
+        }
+        else if (game_mode > 0.0)
+        {
+            if (x_dif <= -0.5) return 32;
+            else if (x_dif > -0.5)
+            {
+                if (x_dif <= 0.5) return 2;
+                else if (x_dif > 0.5) return 42;
+            }
+        }
+    }
+    else if (y_dif > -0.5)
+    {
+        if (y_dif <= 0.5)
+        {
+            if (x_dif <= -0.5)
+            {
+                if (game_mode <= 0.0) return 4;
+                else if (game_mode > 0.0) return 3;
+            }
+            else if (x_dif > -0.5)
+            {
+                if (x_dif <= 0.5) return 0;
+                else if (x_dif > 0.5)
+                {
+                    if (game_mode <= 0.0) return 3;
+                    else if (game_mode > 0.0) return 4;
+                }
+            }
+        }
+        else if (y_dif > 0.5)
+        {
+            if (game_mode <= 0.0)
+            {
+                if (x_dif <= -0.5) return 42;
+                else if (x_dif > -0.5)
+                {
+                    if (x_dif <= 0.5) return 2;
+                    else if (x_dif > 0.5) return 32;
+                }
+            }
+            else if (game_mode > 0.0)
+            {
+                if (x_dif <= -0.5) return 31;
+                else if (x_dif > -0.5)
+                {
+                    if (x_dif <= 0.5) return 1;
+                    else if (x_dif > 0.5) return 41;
+                }
+            }
+        }
+    }
+
+    return -1;
+}*/
+
+/*List<int> BuildMoves(int move)
+{
+List<int> moves = new List<int>();
+int antiDirection = -1;
+int i = 0;
+
+int first = move / 10;
+int second = move % 10;
+
+moves.Add(second);
+
+if (first != 0)
+    moves.Add(first);
+
+for (i = RIGHT; i >= UP; i--)
+{
+    if (!moves.Contains(i))
+        moves.Add(i);
+}
+
+antiDirection = AntiDirection(direction);
+moves.Remove(antiDirection);
+
+return moves;
+}*/
