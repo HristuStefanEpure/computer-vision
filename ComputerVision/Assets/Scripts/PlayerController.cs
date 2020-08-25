@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5f;
     public Transform movePoint;
 
+    public int nrCoins;
+
     public Tilemap coins;
     public Tilemap powers;
 
@@ -32,7 +34,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (scoreCoins == 247) // 247 - total number of coins
+        if (scoreCoins == nrCoins) // nrCoins - total number of coins
         {
             gameState = 1;
         }
